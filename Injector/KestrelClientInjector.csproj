@@ -1,0 +1,99 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>assets\logo.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    
+    <!-- Assembly Information -->
+    <AssemblyTitle>KestrelClientInjector</AssemblyTitle>
+    <AssemblyDescription>A Minecraft client with a built-in DLL injector, featuring plugin support, caching, Discord RPC, modern UI, version management, Java detection, memory optimization, and an extensible plugin system.</AssemblyDescription>
+    <AssemblyProduct>KestrelClientInjector</AssemblyProduct>
+    <AssemblyCompany>MythicalSystems</AssemblyCompany>
+    <AssemblyCopyright>Copyright © 2025 MythicalSystems. All rights reserved.</AssemblyCopyright>
+    <AssemblyTrademark>KestrelClientInjector™</AssemblyTrademark>
+    
+    <!-- Versioning -->
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
+    <Version>1.0.2</Version>
+    
+    <!-- Package Information -->
+    <Title>KestrelClientInjector</Title>
+    <Authors>MythicalSystems</Authors>
+    <Company>MythicalSystems</Company>
+    <Copyright>Copyright © 2025 MythicalSystems. All rights reserved.</Copyright>
+    <PackageIcon>games-minecraft.1024x1024.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://mythical.systems</PackageProjectUrl>
+    <Description>A Minecraft client with a built-in DLL injector, featuring plugin support, caching, Discord RPC, modern UI, version management, Java detection, memory optimization, and an extensible plugin system.</Description>
+    <RepositoryUrl>https://github.com/mythicalltd/kestrelclient</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>launcher,minecraft,mc,mclauncher,c#,winforms,gaming,java,dllinjector,discordrpc,versionmanagement,javadetection,memoryoptimization,plugin,extensible</PackageTags>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    
+    <!-- File Properties -->
+    <Win32Resource />
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
+    
+    <!-- Publisher Information -->
+    <PublisherName>MythicalSystems</PublisherName>
+    <SupportUrl>https://mythical.systems/support</SupportUrl>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <StartupObject>KestrelClientInjector.Program</StartupObject>
+    <ApplicationUseCompatibleTextRendering>false</ApplicationUseCompatibleTextRendering>
+    <NoWin32Manifest>true</NoWin32Manifest>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>embedded</DebugType>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- Only include English language resources to avoid extra language directories -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="assets\logo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bunifu.UI.WinForms" Version="9.0.0" />
+    <PackageReference Include="Costura.Fody" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive; compile</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
+    <PackageReference Include="Guna.UI2.WinForms" Version="2.0.4.7" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
