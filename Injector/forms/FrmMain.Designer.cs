@@ -48,6 +48,7 @@
             lblInstructions = new Label();
             btnRefreshProcesses = new KestrelClientInjector.components.Button(components);
             cbShowAllProc = new KestrelClientInjector.components.CheckBox(components);
+            cbIgnoreSecurity = new KestrelClientInjector.components.CheckBox(components);
             txtDLLPath = new KestrelClientInjector.components.TextBox(components);
             btnPickDLL = new KestrelClientInjector.components.Button(components);
             label1 = new KestrelClientInjector.components.Label(components);
@@ -178,6 +179,28 @@
             btnRefreshProcesses.Text = "🔄 Refresh";
             btnRefreshProcesses.Click += btnRefreshProcesses_Click;
             // 
+            // cbIgnoreSecurity
+            // 
+            cbIgnoreSecurity.Animated = true;
+            cbIgnoreSecurity.AutoSize = true;
+            cbIgnoreSecurity.BackColor = Color.Transparent;
+            cbIgnoreSecurity.CheckedState.BorderColor = Color.FromArgb(255, 87, 34);
+            cbIgnoreSecurity.CheckedState.BorderRadius = 0;
+            cbIgnoreSecurity.CheckedState.BorderThickness = 0;
+            cbIgnoreSecurity.CheckedState.FillColor = Color.FromArgb(255, 87, 34);
+            cbIgnoreSecurity.Font = new Font("Trebuchet MS", 9F, FontStyle.Bold);
+            cbIgnoreSecurity.ForeColor = Color.FromArgb(255, 193, 7);
+            cbIgnoreSecurity.Location = new Point(13, 443);
+            cbIgnoreSecurity.Name = "cbIgnoreSecurity";
+            cbIgnoreSecurity.Size = new Size(200, 22);
+            cbIgnoreSecurity.TabIndex = 12;
+            cbIgnoreSecurity.Text = "⚠️ Ignore Security Flags";
+            cbIgnoreSecurity.UncheckedState.BorderColor = Color.FromArgb(38, 38, 38);
+            cbIgnoreSecurity.UncheckedState.BorderRadius = 0;
+            cbIgnoreSecurity.UncheckedState.BorderThickness = 0;
+            cbIgnoreSecurity.UncheckedState.FillColor = Color.FromArgb(38, 38, 38);
+            cbIgnoreSecurity.UseVisualStyleBackColor = false;
+            // 
             // cbShowAllProc
             // 
             cbShowAllProc.Animated = true;
@@ -189,7 +212,7 @@
             cbShowAllProc.CheckedState.FillColor = Color.FromArgb(231, 80, 34);
             cbShowAllProc.Font = new Font("Trebuchet MS", 9F, FontStyle.Bold);
             cbShowAllProc.ForeColor = Color.White;
-            cbShowAllProc.Location = new Point(608, 443);
+            cbShowAllProc.Location = new Point(608, 470);
             cbShowAllProc.Name = "cbShowAllProc";
             cbShowAllProc.Size = new Size(177, 22);
             cbShowAllProc.TabIndex = 7;
@@ -257,7 +280,7 @@
             label1.BackColor = Color.Transparent;
             label1.Font = new Font("Trebuchet MS", 12F);
             label1.ForeColor = Color.White;
-            label1.Location = new Point(13, 443);
+            label1.Location = new Point(13, 470);
             label1.Name = "label1";
             label1.Size = new Size(589, 30);
             label1.TabIndex = 10;
@@ -295,6 +318,7 @@
             Controls.Add(label1);
             Controls.Add(btnPickDLL);
             Controls.Add(txtDLLPath);
+            Controls.Add(cbIgnoreSecurity);
             Controls.Add(cbShowAllProc);
             Controls.Add(btnRefreshProcesses);
             Controls.Add(lblInstructions);
@@ -323,6 +347,7 @@
         private Label lblInstructions;
         private components.Button btnRefreshProcesses;
         private components.CheckBox cbShowAllProc;
+        private components.CheckBox cbIgnoreSecurity;
         private components.TextBox txtDLLPath;
         private components.Button btnPickDLL;
         private components.Label label1;

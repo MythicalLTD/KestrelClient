@@ -10,4 +10,6 @@
 // add headers that you want to pre-compile here
 #include "framework.h"
 
+DWORD WINAPI MainThread(HMODULE hModule);
+
 #endif //PCH_H

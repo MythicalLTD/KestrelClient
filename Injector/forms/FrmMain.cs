@@ -41,7 +41,18 @@ namespace KestrelClientInjector.forms
             cbShowAllProc.CheckedChanged += cbShowAllProc_CheckedChanged;
             cbShowAllProc.Checked = false;
 
+            cbIgnoreSecurity.CheckedChanged += cbIgnoreSecurity_CheckedChanged;
+            cbIgnoreSecurity.Checked = false;
+
             btnPickDLL.Click += btnPickDLL_Click;
+
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+            string lastDllPath = RegistryConfig.GetValue("last_dll_path", "");
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+            if (!string.IsNullOrEmpty(lastDllPath))
+            {
+                txtDLLPath.Text = lastDllPath;
+            }
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
@@ -161,6 +172,11 @@ namespace KestrelClientInjector.forms
             txtSearch.Text = "";
         }
 
+        private void cbIgnoreSecurity_CheckedChanged(object? sender, EventArgs e)
+        {
+            UpdateInjectButtonState();
+        }
+
         private void lbPrograms_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lbPrograms.SelectedItem is SafeProcessItem selectedProcess)
@@ -169,8 +185,16 @@ namespace KestrelClientInjector.forms
 
                 if (injectedProcessIds.Contains(selectedProcess.ProcessId))
                 {
-                    lblInstructions.Text = $"🚫 {selectedProcess.ProcessName} (PID: {selectedProcess.ProcessId}) already has DLL injected!";
-                    lblInstructions.ForeColor = Color.FromArgb(240, 71, 71);
+                    if (cbIgnoreSecurity.Checked)
+                    {
+                        lblInstructions.Text = $"⚠️ {selectedProcess.ProcessName} (PID: {selectedProcess.ProcessId}) already has DLL injected! Ignore Security is enabled.";
+                        lblInstructions.ForeColor = Color.FromArgb(255, 193, 7);
+                    }
+                    else
+                    {
+                        lblInstructions.Text = $"🚫 {selectedProcess.ProcessName} (PID: {selectedProcess.ProcessId}) already has DLL injected!";
+                        lblInstructions.ForeColor = Color.FromArgb(240, 71, 71);
+                    }
                 }
                 else if (selectedProcess.IsRisky)
                 {
@@ -212,6 +236,8 @@ namespace KestrelClientInjector.forms
                     selectedDllPath = openFileDialog.FileName;
                     txtDLLPath.Text = selectedDllPath;
                     label1.Text = $"DLL Selected: {Path.GetFileName(selectedDllPath)}";
+                    lblInstructions.Text = $"✅ DLL Selected: {Path.GetFileName(selectedDllPath)}";
+                    RegistryConfig.SetValue("last_dll_path", selectedDllPath); 
                     UpdateInjectButtonState();
                 }
             }
@@ -221,11 +247,11 @@ namespace KestrelClientInjector.forms
         {
             bool canInject = SelectedProcess != null &&
                              !string.IsNullOrEmpty(selectedDllPath) &&
-                             !injectedProcessIds.Contains(SelectedProcess?.ProcessId ?? 0);
+                             (!injectedProcessIds.Contains(SelectedProcess?.ProcessId ?? 0) || cbIgnoreSecurity.Checked);
 
             btnNext.Enabled = canInject;
 
-            if (SelectedProcess != null && injectedProcessIds.Contains(SelectedProcess.ProcessId))
+            if (SelectedProcess != null && injectedProcessIds.Contains(SelectedProcess.ProcessId) && !cbIgnoreSecurity.Checked)
             {
                 btnNext.Text = "🚫 ALREADY INJECTED";
             }
@@ -256,7 +282,7 @@ namespace KestrelClientInjector.forms
                 return;
             }
 
-            if (injectedProcessIds.Contains(SelectedProcess.ProcessId))
+            if (injectedProcessIds.Contains(SelectedProcess.ProcessId) && !cbIgnoreSecurity.Checked)
             {
                 Alert.Warning("This process already has a DLL injected. Multiple injections are not allowed to prevent crashes.");
                 return;
