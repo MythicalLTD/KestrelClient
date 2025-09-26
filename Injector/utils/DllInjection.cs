@@ -164,15 +164,15 @@ namespace KestrelClientInjector.utils
             if (procId == 0)
                 return DllInjectionResult.GameProcessNotFound;
 
-            return await Inject(procId, dllPath);
+            return await Inject(procId, dllPath, false);
         }
 
-        public async Task<DllInjectionResult> Inject(uint processId, string dllPath)
+        public async Task<DllInjectionResult> Inject(uint processId, string dllPath, bool ignoreSecurity)
         {
             if (!File.Exists(dllPath))
                 return DllInjectionResult.DllNotFound;
 
-            if (_injectedDlls.Any(dll => dll.ProcessId == processId && dll.DllPath == dllPath))
+            if (_injectedDlls.Any(dll => dll.ProcessId == processId && dll.DllPath == dllPath) && !ignoreSecurity)
                 return DllInjectionResult.AlreadyInjected;
 
             Process targetProcess;
@@ -187,7 +187,7 @@ namespace KestrelClientInjector.utils
 
             await AddStealthDelay();
 
-            var result = InjectDllInternal(processId, dllPath);
+            var result = InjectDllInternal(processId, dllPath, ignoreSecurity);
             if (result.Success)
             {
                 _injectedDlls.Add(new InjectedDll
@@ -275,34 +275,34 @@ namespace KestrelClientInjector.utils
             await Task.Delay(delay);
         }
 
-        private (bool Success, IntPtr ModuleHandle, DllInjectionResult Result) InjectDllInternal(uint processId, string dllPath)
+        private (bool Success, IntPtr ModuleHandle, DllInjectionResult Result) InjectDllInternal(uint processId, string dllPath, bool ignoreSecurity)
         {
             IntPtr hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
             if (hProcess == INTPTR_ZERO)
-                return (false, IntPtr.Zero, DllInjectionResult.AccessDenied);
+                return (false, IntPtr.Zero, ignoreSecurity ? DllInjectionResult.Success : DllInjectionResult.AccessDenied);
 
             try
             {
                 IntPtr loadLibraryAddr = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
                 if (loadLibraryAddr == INTPTR_ZERO)
-                    return (false, IntPtr.Zero, DllInjectionResult.InjectionFailed);
+                    return (false, IntPtr.Zero, ignoreSecurity ? DllInjectionResult.Success : DllInjectionResult.InjectionFailed);
 
                 byte[] dllBytes = Encoding.ASCII.GetBytes(dllPath + "\0");
                 IntPtr allocMemAddress = VirtualAllocEx(hProcess, IntPtr.Zero, (IntPtr)dllBytes.Length, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
                 if (allocMemAddress == INTPTR_ZERO)
-                    return (false, IntPtr.Zero, DllInjectionResult.InjectionFailed);
+                    return (false, IntPtr.Zero, ignoreSecurity ? DllInjectionResult.Success : DllInjectionResult.InjectionFailed);
 
                 if (!WriteProcessMemory(hProcess, allocMemAddress, dllBytes, (uint)dllBytes.Length, out _))
                 {
                     VirtualFreeEx(hProcess, allocMemAddress, 0, 0x8000);
-                    return (false, IntPtr.Zero, DllInjectionResult.InjectionFailed);
+                    return (false, IntPtr.Zero, ignoreSecurity ? DllInjectionResult.Success : DllInjectionResult.InjectionFailed);
                 }
 
                 IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, IntPtr.Zero, loadLibraryAddr, allocMemAddress, 0, IntPtr.Zero);
                 if (hThread == INTPTR_ZERO)
                 {
                     VirtualFreeEx(hProcess, allocMemAddress, 0, 0x8000);
-                    return (false, IntPtr.Zero, DllInjectionResult.InjectionFailed);
+                    return (false, IntPtr.Zero, ignoreSecurity ? DllInjectionResult.Success : DllInjectionResult.InjectionFailed);
                 }
 
                 WaitForSingleObject(hThread, 5000);
@@ -312,7 +312,7 @@ namespace KestrelClientInjector.utils
                 CloseHandle(hThread);
                 VirtualFreeEx(hProcess, allocMemAddress, 0, 0x8000);
 
-                return (true, moduleHandle, DllInjectionResult.Success);
+                return (true, moduleHandle, ignoreSecurity ? DllInjectionResult.Success : DllInjectionResult.InjectionFailed);
             }
             finally
             {
@@ -395,7 +395,7 @@ namespace KestrelClientInjector.utils
         // Legacy compatibility
         private bool bInject(uint processId, string dllPath)
         {
-            var result = InjectDllInternal(processId, dllPath);
+            var result = InjectDllInternal(processId, dllPath, false);
             return result.Success;
         }
     }

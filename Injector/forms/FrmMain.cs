@@ -28,7 +28,7 @@ namespace KestrelClientInjector.forms
         private void SetupUI()
         {
             btnNext.Text = "💉 INJECT";
-            btnNext.Enabled = false;
+            btnNext.Enabled = true;
 
             pbProgress.Visible = false;
             pbProgress.Value = 0;
@@ -343,7 +343,7 @@ namespace KestrelClientInjector.forms
                 pbProgress.Value = 60;
 
                 DllInjector dllInjector = DllInjector.Instance;
-                DllInjectionResult result = await dllInjector.Inject(SelectedProcess.ProcessId, selectedDllPath);
+                DllInjectionResult result = await dllInjector.Inject(SelectedProcess.ProcessId, selectedDllPath, cbIgnoreSecurity.Checked);
 
                 pbProgress.Value = 100;
                 await Task.Delay(300);

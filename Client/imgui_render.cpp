@@ -1,8 +1,12 @@
 #include <imgui.h>
+#include "timer.h"
 
 bool showMenu = false;
 bool showExitDialog = false;
 bool shouldExit = false;
+
+static bool timerHackEnabled = false;
+static float timerSpeed = 1.0f;
 
 // Forward declarations
 void ShowExitConfirmationDialog();
@@ -18,6 +22,23 @@ void RenderImGui() {
 	if (!showMenu) return;
 
 	ImGui::Begin("KestrelClient v0.1");
+
+	if (ImGui::Checkbox("Enable Timer Hack", &timerHackEnabled)) {
+		if (timerHackEnabled) {
+			InitTimerHack();
+			SetTimerSpeed(timerSpeed);
+			StartTimerHackThread();
+		}
+		else {
+			StopTimerHackThread();
+		}
+	}
+
+	if (ImGui::SliderFloat("Timer Speed", &timerSpeed, 0.1f, 10.0f)) {
+		if (timerHackEnabled) {
+			SetTimerSpeed(timerSpeed);
+		}
+	}
 	
 	ImGui::End();
 }

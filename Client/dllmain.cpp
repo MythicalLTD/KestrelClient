@@ -6,6 +6,7 @@
 #include <chrono>
 #include "hooks.h"
 #include "imgui_render.h"
+#include "timer.h"
 
 DWORD WINAPI MainThread(HMODULE hModule) {
     // Allocate a new console for output
@@ -30,6 +31,7 @@ DWORD WINAPI MainThread(HMODULE hModule) {
     std::wcin.clear();
     std::cin.clear();
 
+    InitTimerHack();
     HookSwapBuffers();
     HookSetCursorPos();
 
@@ -60,6 +62,7 @@ DWORD WINAPI MainThread(HMODULE hModule) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
+    StopTimerHackThread();
     UnhookSwapBuffers();
 
     // Clean up: close the console and free resources
