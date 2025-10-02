@@ -1,12 +1,13 @@
 #include <Windows.h>
-#include <MinHook.h>
+#include "include/MinHook.h"
 #include <atomic>
 #include <string>
-#include <imgui.h>
-#include <imgui_impl_win32.h>
-#include <imgui_impl_opengl3.h>
-#include <glad/gl.h>
+#include "include/imgui.h"
+#include "include/imgui_impl_win32.h"
+#include "include/imgui_impl_opengl3.h"
+#include "include/glad/gl.h"
 #include "imgui_render.h"
+#include "network_monitor.h"
 
 typedef BOOL(WINAPI* SwapBuffers_t)(HDC);
 SwapBuffers_t oSwapBuffers = nullptr;
@@ -14,8 +15,8 @@ SwapBuffers_t oSwapBuffers = nullptr;
 HWND g_hWnd = nullptr;
 WNDPROC oWndProc = nullptr;
 
-std::atomic_bool g_Initalized = false;
-std::atomic_bool g_HookInstalled = false;
+std::atomic_bool g_Initialized{false};
+std::atomic_bool g_HookInstalled{false};
 
 // Set this to false to completely disable UI rendering and avoid ImGui issues
 bool g_EnableUI = true;
@@ -117,7 +118,7 @@ BOOL WINAPI hkSwapBuffers(HDC hdc) {
         return oSwapBuffers(hdc);
     }
 
-    if (!g_Initalized.load()) {
+    if (!g_Initialized.load()) {
         // Find the Minecraft window using the EnumWindows callback
         EnumWindows(EnumWindowsProc, 0);
         if (g_hWnd && !oWndProc) {
@@ -133,7 +134,12 @@ BOOL WINAPI hkSwapBuffers(HDC hdc) {
                 return oSwapBuffers(hdc);
             }
             ImGui_ImplOpenGL3_Init("#version 120");
-            g_Initalized = true;
+            
+            // Initialize FPS tracking
+            InitializeFPS();
+            NetworkMonitor_Initialize();
+            
+            g_Initialized = true;
         }
         else {
             // No window found yet. Let the hook continue to run, but don't show an error.
@@ -142,47 +148,45 @@ BOOL WINAPI hkSwapBuffers(HDC hdc) {
         }
     }
 
-    if (g_Initalized.load()) {
+    if (g_Initialized.load()) {
         if ((GetAsyncKeyState(VK_INSERT) & 1) != 0) {
             showMenu = !showMenu;
         }
 
-        // Only render ImGui if menu is open or exit dialog is visible
-        if (showMenu || showExitDialog) {
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplWin32_NewFrame();
-            ImGui::NewFrame();
+        // Always render ImGui to show FPS overlay, but only capture input when menu is open
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
 
-            RenderImGui();
+        RenderImGui();
 
-            ImGui::Render();
-            
-            GLint last_program = 0, last_active_texture = 0, last_texture = 0;
-            GLint last_array_buffer = 0, last_vertex_array = 0, last_viewport[4];
-            GLboolean last_blend = glIsEnabled(GL_BLEND);
-            GLboolean last_depth_test = glIsEnabled(GL_DEPTH_TEST);
-            GLboolean last_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+        ImGui::Render();
+        
+        GLint last_program = 0, last_active_texture = 0, last_texture = 0;
+        GLint last_array_buffer = 0, last_vertex_array = 0, last_viewport[4];
+        GLboolean last_blend = glIsEnabled(GL_BLEND);
+        GLboolean last_depth_test = glIsEnabled(GL_DEPTH_TEST);
+        GLboolean last_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
 
-            glGetIntegerv(GL_CURRENT_PROGRAM, &last_program);
-            glGetIntegerv(GL_ACTIVE_TEXTURE, &last_active_texture);
-            glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-            glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
-            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
-            glGetIntegerv(GL_VIEWPORT, last_viewport);
+        glGetIntegerv(GL_CURRENT_PROGRAM, &last_program);
+        glGetIntegerv(GL_ACTIVE_TEXTURE, &last_active_texture);
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
+        glGetIntegerv(GL_VIEWPORT, last_viewport);
 
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-            glUseProgram(last_program);
-            glActiveTexture(last_active_texture);
-            glBindTexture(GL_TEXTURE_2D, last_texture);
-            glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
-            glBindVertexArray(last_vertex_array);
-            glViewport(last_viewport[0], last_viewport[1], last_viewport[2], last_viewport[3]);
+        glUseProgram(last_program);
+        glActiveTexture(last_active_texture);
+        glBindTexture(GL_TEXTURE_2D, last_texture);
+        glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
+        glBindVertexArray(last_vertex_array);
+        glViewport(last_viewport[0], last_viewport[1], last_viewport[2], last_viewport[3]);
 
-            if (last_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
-            if (last_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
-            if (last_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
-        }
+        if (last_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
+        if (last_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+        if (last_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
     }
     if (showMenu || showExitDialog) {
         SetCursorVisibility(true);
@@ -210,11 +214,11 @@ void HookSwapBuffers() {
 
 void UnhookSwapBuffers() {
     // Only shutdown ImGui if it was properly initialized
-    if (g_Initalized.load()) {
+    if (g_Initialized.load()) {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplWin32_Shutdown();
         ImGui::DestroyContext();
-        g_Initalized = false;
+        g_Initialized = false;
     }
 
     if (g_hWnd && oWndProc) {
@@ -223,4 +227,6 @@ void UnhookSwapBuffers() {
 
     MH_DisableHook(MH_ALL_HOOKS);
     MH_Uninitialize();
+
+    NetworkMonitor_Shutdown();
 }

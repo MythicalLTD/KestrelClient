@@ -116,7 +116,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opengl32.lib;C:\Users\NaysKutzu\Documents\GitHub\KestrelClient\Client\include\libMinHook.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;Ws2_32.lib;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64\iphlpapi.lib;C:\Users\NaysKutzu\Documents\GitHub\KestrelClient\Client\include\libMinHook.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -140,6 +140,8 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="hooks.h" />
     <ClInclude Include="imgui_render.h" />
+    <ClInclude Include="network_monitor.h" />
+    <ClInclude Include="script_engine.h" />
     <ClInclude Include="include\glad\gl.h" />
     <ClInclude Include="include\imconfig.h" />
     <ClInclude Include="include\imgui.h" />
@@ -158,6 +160,8 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="hooks.cpp" />
     <ClCompile Include="imgui_render.cpp" />
+    <ClCompile Include="network_monitor.cpp" />
+    <ClCompile Include="script_engine.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

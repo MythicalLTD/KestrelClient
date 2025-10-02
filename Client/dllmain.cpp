@@ -6,7 +6,7 @@
 #include <chrono>
 #include "hooks.h"
 #include "imgui_render.h"
-#include "timer.h"
+#include "script_engine.h"
 
 DWORD WINAPI MainThread(HMODULE hModule) {
     // Allocate a new console for output
@@ -31,9 +31,32 @@ DWORD WINAPI MainThread(HMODULE hModule) {
     std::wcin.clear();
     std::cin.clear();
 
-    InitTimerHack();
     HookSwapBuffers();
     HookSetCursorPos();
+    InitializeFPS();
+
+    // Initialize script engine
+    g_ScriptEngine = new ScriptEngine();
+    if (g_ScriptEngine->Initialize()) {
+        printf("Script engine initialized successfully!\n");
+        
+        // Setup game API callbacks
+        g_ScriptEngine->SetLogCallback([](const std::string& msg) {
+            printf("[LUA] %s\n", msg.c_str());
+        });
+        
+        g_ScriptEngine->SetKeyPressedCallback([](const std::string& key) -> bool {
+            if (key == "VK_SPACE") return (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
+            if (key == "VK_RETURN") return (GetAsyncKeyState(VK_RETURN) & 0x8000) != 0;
+            if (key == "VK_ESCAPE") return (GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
+            return false;
+        });
+        
+    } else {
+        printf("Failed to initialize script engine!\n");
+        delete g_ScriptEngine;
+        g_ScriptEngine = nullptr;
+    }
 
     // Print a message to verify console output is working
     printf("Console attached! Press F8 to show exit confirmation...\n");
@@ -62,8 +85,20 @@ DWORD WINAPI MainThread(HMODULE hModule) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    StopTimerHackThread();
     UnhookSwapBuffers();
+    ResetExitState();
+    
+    // Cleanup hack mods - disable all active mods
+    printf("Disabling all active hack mods...\n");
+    DisableAllMods();
+    
+    // Cleanup script engine
+    if (g_ScriptEngine) {
+        g_ScriptEngine->Shutdown();
+        delete g_ScriptEngine;
+        g_ScriptEngine = nullptr;
+        printf("Script engine cleaned up.\n");
+    }
 
     // Clean up: close the console and free resources
     fclose(stdout);
