@@ -103,6 +103,7 @@ extern "C" {
     #if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) && WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
       #define GLAD_PLATFORM_UWP 1
     #endif
+#include "../KHR/khrplatform.h"
   #endif
 
   #ifndef GLAD_PLATFORM_UWP
@@ -1412,7 +1413,6 @@ typedef void (*GLADpostcallback)(void *ret, const char *name, GLADapiproc apipro
 #define GL_ZOOM_Y 0x0D17
 
 
-#include <KHR/khrplatform.h>
 typedef unsigned int GLenum;
 typedef unsigned char GLboolean;
 typedef unsigned int GLbitfield;

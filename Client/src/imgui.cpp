@@ -1134,9 +1134,9 @@ IMPLEMENTING SUPPORT for ImGuiBackendFlags_RendererHasTextures:
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "imgui.h"
+#include "../include/imgui.h"
 #ifndef IMGUI_DISABLE
-#include "imgui_internal.h"
+#include "../include/imgui_internal.h"
 
 // System includes
 #include <stdio.h>      // vsnprintf, sscanf, printf
@@ -1175,6 +1175,7 @@ IMPLEMENTING SUPPORT for ImGuiBackendFlags_RendererHasTextures:
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
+
 
 // Visual Studio warnings
 #ifdef _MSC_VER

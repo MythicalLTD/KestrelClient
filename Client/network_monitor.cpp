@@ -240,5 +240,3 @@ void NetworkMonitor_GetSnapshot(std::vector<ConnectionInfo>& outConnections)
 	outConnections = s_connections;
 }
 
-
-

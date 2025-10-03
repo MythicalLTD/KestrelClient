@@ -8,32 +8,57 @@
 #include "imgui_render.h"
 #include "script_engine.h"
 
+#pragma comment(lib, "advapi32.lib")
+
 DWORD WINAPI MainThread(HMODULE hModule) {
-    // Allocate a new console for output
-    AllocConsole();
+    // Check if console should be shown (check registry setting)
+    bool showConsole = true;
+    
+    // Check registry for console setting
+    HKEY hKey;
+    DWORD dwValue = 1;
+    DWORD dwSize = sizeof(DWORD);
+    
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\KestrelClient", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        if (RegQueryValueExA(hKey, "ShowConsole", NULL, NULL, (LPBYTE)&dwValue, &dwSize) == ERROR_SUCCESS) {
+            showConsole = (dwValue != 0);
+        }
+        RegCloseKey(hKey);
+    } else {
+        // Create registry key with default value
+        RegCreateKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\KestrelClient", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, NULL);
+        RegSetValueExA(hKey, "ShowConsole", 0, REG_DWORD, (LPBYTE)&dwValue, sizeof(DWORD));
+        RegCloseKey(hKey);
+    }
+    
+    if (showConsole) {
+        // Allocate a new console for output
+        AllocConsole();
 
-    // Redirect stdout, stderr, and stdin to the new console
-    FILE* fDummy;
-    freopen_s(&fDummy, "CONOUT$", "w", stdout);
-    freopen_s(&fDummy, "CONOUT$", "w", stderr);
-    freopen_s(&fDummy, "CONIN$", "r", stdin);
+        // Redirect stdout, stderr, and stdin to the new console
+        FILE* fDummy;
+        freopen_s(&fDummy, "CONOUT$", "w", stdout);
+        freopen_s(&fDummy, "CONOUT$", "w", stderr);
+        freopen_s(&fDummy, "CONIN$", "r", stdin);
 
-    // Set the standard handles to the new console
-    SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_OUTPUT_HANDLE));
-    SetStdHandle(STD_ERROR_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
-    SetStdHandle(STD_INPUT_HANDLE, GetStdHandle(STD_INPUT_HANDLE));
+        // Set the standard handles to the new console
+        SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_OUTPUT_HANDLE));
+        SetStdHandle(STD_ERROR_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
+        SetStdHandle(STD_INPUT_HANDLE, GetStdHandle(STD_INPUT_HANDLE));
 
-    // Optional: clear error state for each stream
-    std::wcout.clear();
-    std::cout.clear();
-    std::wcerr.clear();
-    std::cerr.clear();
-    std::wcin.clear();
-    std::cin.clear();
+        // Optional: clear error state for each stream
+        std::wcout.clear();
+        std::cout.clear();
+        std::wcerr.clear();
+        std::cerr.clear();
+        std::wcin.clear();
+        std::cin.clear();
+    }
 
     HookSwapBuffers();
     HookSetCursorPos();
     InitializeFPS();
+    InitializeUI(); // Initialize UI and load primary preset
 
     // Initialize script engine
     g_ScriptEngine = new ScriptEngine();
@@ -100,11 +125,15 @@ DWORD WINAPI MainThread(HMODULE hModule) {
         printf("Script engine cleaned up.\n");
     }
 
-    // Clean up: close the console and free resources
-    fclose(stdout);
-    fclose(stderr);
-    fclose(stdin);
-    FreeConsole();
+    
+
+    // Clean up: close the console and free resources (only if console was opened)
+    if (showConsole) {
+        fclose(stdout);
+        fclose(stderr);
+        fclose(stdin);
+        FreeConsole();
+    }
     FreeLibraryAndExitThread(hModule, 0);
     return 0;
 }

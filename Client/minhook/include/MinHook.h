@@ -79,7 +79,10 @@ typedef enum MH_STATUS
     MH_ERROR_MODULE_NOT_FOUND,
 
     // The specified function is not found.
-    MH_ERROR_FUNCTION_NOT_FOUND
+    MH_ERROR_FUNCTION_NOT_FOUND,
+
+    // The specified parameter is invalid.
+    MH_ERROR_INVALID_PARAMETER
 }
 MH_STATUS;
 
@@ -178,7 +181,7 @@ extern "C" {
     MH_STATUS WINAPI MH_ApplyQueued(VOID);
 
     // Translates the MH_STATUS to its name as a string.
-    const char * WINAPI MH_StatusToString(MH_STATUS status);
+    const char *WINAPI MH_StatusToString(MH_STATUS status);
 
 #ifdef __cplusplus
 }

@@ -127,7 +127,6 @@ Index of this file:
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "imgui.h"
 #ifndef IMGUI_DISABLE
 
 // System includes
@@ -143,6 +142,7 @@ Index of this file:
 #ifdef __EMSCRIPTEN__
 #include <emscripten/version.h>     // __EMSCRIPTEN_major__ etc.
 #endif
+#include "../include/imgui.h"
 
 // Visual Studio warnings
 #ifdef _MSC_VER
