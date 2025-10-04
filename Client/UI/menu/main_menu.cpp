@@ -2,7 +2,6 @@
 #include "../overlays/fps_overlay.h"
 #include "../components/lua_executor.h"
 #include "../components/hack_engine.h"
-#include "../components/auto_clicker.h"
 #include "../components/notifications.h"
 #include "../../include/imgui.h"
 #include "../../script_engine.h"
@@ -33,15 +32,48 @@ void RenderMainMenu() {
 	// Features Section
 	ImGui::Text("Features:");
 	ImGui::Indent();
-	ImGui::Checkbox("📊 Show FPS Overlay", &showFPSOverlay);
+	ImGui::Checkbox("Enable Overlays", &overlayEnabled);
 	ImGui::SameLine();
-	if (showFPSOverlay) {
+	if (overlayEnabled) {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
 		ImGui::Text("●");
 		ImGui::PopStyleColor();
 	}
 	
-	ImGui::Checkbox("🔧 Lua Script Executor", &showExecutor);
+	// Overlay configuration (only show if overlays are enabled)
+	if (overlayEnabled) {
+		ImGui::Indent();
+		ImGui::Text("Overlay Widgets:");
+		ImGui::Checkbox("Client Title", &titleWidget.enabled);
+		ImGui::Checkbox("FPS Info", &fpsWidget.enabled);
+		ImGui::Checkbox("Network Info", &networkInfoWidget.enabled);
+		ImGui::Checkbox("Active Mods", &activeModsWidget.enabled);
+		
+		ImGui::Text("Instructions:");
+		ImGui::Text("• Drag widgets to reposition them");
+		ImGui::Text("• Settings auto-save when changed");
+		ImGui::Text("• Each widget can be enabled/disabled");
+		
+		// Auto-save settings when values change
+		static bool lastTitleEnabled = titleWidget.enabled;
+		static bool lastFPSEnabled = fpsWidget.enabled;
+		static bool lastNetworkEnabled = networkInfoWidget.enabled;
+		static bool lastActiveModsEnabled = activeModsWidget.enabled;
+		
+		if (lastTitleEnabled != titleWidget.enabled ||
+		    lastFPSEnabled != fpsWidget.enabled || lastNetworkEnabled != networkInfoWidget.enabled ||
+		    lastActiveModsEnabled != activeModsWidget.enabled) {
+			SaveOverlaySettings();
+			lastTitleEnabled = titleWidget.enabled;
+			lastFPSEnabled = fpsWidget.enabled;
+			lastNetworkEnabled = networkInfoWidget.enabled;
+			lastActiveModsEnabled = activeModsWidget.enabled;
+		}
+		
+		ImGui::Unindent();
+	}
+	
+	ImGui::Checkbox("Lua Script Executor", &showExecutor);
 	ImGui::SameLine();
 	if (showExecutor) {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
@@ -49,7 +81,7 @@ void RenderMainMenu() {
 		ImGui::PopStyleColor();
 	}
 	
-	ImGui::Checkbox("🎯 Hack Engine", &showHackEngine);
+	ImGui::Checkbox("Hack Engine", &showHackEngine);
 	ImGui::SameLine();
 	if (showHackEngine) {
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
@@ -59,7 +91,7 @@ void RenderMainMenu() {
 	
 	// Console toggle
 	bool consoleEnabled = IsConsoleEnabled();
-	if (ImGui::Checkbox("🖥️ Show Console", &consoleEnabled)) {
+	if (ImGui::Checkbox("Show Console", &consoleEnabled)) {
 		ToggleConsole();
 	}
 	ImGui::SameLine();
@@ -68,16 +100,7 @@ void RenderMainMenu() {
 		ImGui::Text("●");
 		ImGui::PopStyleColor();
 	}
-	
-	// Auto-clicker toggle button
-	ImGui::Spacing();
-	ImGui::Text("Auto-clicker:");
-	ImGui::Indent();
-	if (ImGui::Button(IsAutoClickerEnabled() ? "🟢 Disable Auto-clicker" : "🔴 Enable Auto-clicker", ImVec2(-1, 0))) {
-		ToggleAutoClicker();
-	}
-	ImGui::Unindent();
-	ImGui::Unindent();
+
 	
 	ImGui::Separator();
 	
@@ -107,6 +130,38 @@ void RenderMainMenu() {
 	
 	ImGui::Separator();
 	
+	// EJECT button section
+	ImGui::Spacing();
+	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f)); // Orange text
+	ImGui::Text("Client Management:");
+	ImGui::PopStyleColor();
+	
+	ImGui::Spacing();
+	
+	// Center the EJECT button
+	float ejectButtonWidth = 150.0f;
+	float windowWidth = ImGui::GetWindowWidth();
+	ImGui::SetCursorPosX((windowWidth - ejectButtonWidth) * 0.5f);
+	
+	// EJECT button with warning styling
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.4f, 0.0f, 1.0f)); // Orange button
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.5f, 0.0f, 1.0f)); // Brighter orange on hover
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.3f, 0.0f, 1.0f)); // Darker orange when pressed
+	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f)); // White text
+	
+	if (ImGui::Button("EJECT CLIENT", ImVec2(ejectButtonWidth, 35))) {
+		shouldExit = true;
+	}
+	
+	ImGui::PopStyleColor(4);
+	
+	// EJECT button description
+	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+	ImGui::Text("Safely unload the client from memory");
+	ImGui::PopStyleColor();
+	
+	ImGui::Separator();
+	
 	// Footer
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
 	ImGui::Text("Press F8 to exit | Built with real Lua script engine");
@@ -127,7 +182,7 @@ void ShowExitConfirmationDialog() {
 	if (ImGui::BeginPopupModal("Exit Confirmation", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
 		// Style the dialog
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.0f, 1.0f)); // Orange text
-		ImGui::Text("⚠️  Exit Confirmation");
+		ImGui::Text("Exit Confirmation");
 		ImGui::PopStyleColor();
 		
 		ImGui::Separator();

@@ -20,8 +20,8 @@ void RenderImGui() {
 	// Update ping tracking
 	UpdatePing();
 	
-	// Render FPS overlay (always visible if enabled, regardless of menu state)
-	RenderFPSOverlay();
+	// Render all overlays (always visible if enabled, regardless of menu state)
+	RenderAllOverlays();
 	
 	// Render notifications (always on top)
 	RenderNotifications();
@@ -61,14 +61,12 @@ void RenderImGui() {
 		return;
 	}
 
-	// Auto-open hack engine and executor when main menu opens
+	// Auto-open hack engine when main menu opens (but not executor)
 	if (showMenu) {
 		if (!showHackEngine) {
 			showHackEngine = true;
 		}
-		if (!showExecutor) {
-			showExecutor = true;
-		}
+		// Executor only opens when user clicks the checkbox
 	}
 
 	// Render the main menu

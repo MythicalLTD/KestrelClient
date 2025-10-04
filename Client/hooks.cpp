@@ -128,6 +128,10 @@ BOOL WINAPI hkSwapBuffers(HDC hdc) {
             IMGUI_CHECKVERSION();
             ImGui::CreateContext();
             ImGuiIO& io = ImGui::GetIO();
+            io.IniFilename = NULL; // Disable ImGui.ini file
+            io.ConfigDebugIsDebuggerPresent = false; // Disable debug tools
+            io.ConfigDebugBeginReturnValueOnce = false; // Disable debug begin return value
+            io.ConfigDebugBeginReturnValueLoop = false; // Disable debug begin return value loop
             ImGui_ImplWin32_Init(g_hWnd);
             if (!gladLoaderLoadGL()) {
                 in_hook = false;

@@ -280,8 +280,8 @@ DWORD WINAPI MainThread(HMODULE hModule) {
     LOG_DEBUG("Swap buffers hooked");
     HookSetCursorPos();
     LOG_DEBUG("Set cursor pos hooked");
-    InitializeFPS();
-    LOG_DEBUG("FPS initialized");
+    InitializeOverlay();
+    LOG_DEBUG("Overlay initialized");
     InitializeUI(); // Initialize UI and load primary preset
     
     // Initialize script engine
@@ -340,6 +340,9 @@ DWORD WINAPI MainThread(HMODULE hModule) {
     try {
         UnhookSwapBuffers();
         ResetExitState();
+        
+        // Shutdown overlay system safely
+        ShutdownOverlay();
         
         // Cleanup hack mods - disable all active mods
         // Don't log during cleanup as it might cause crashes

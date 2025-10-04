@@ -5573,6 +5573,11 @@ void ImGui::NewFrame()
     // This fallback is particularly important as it prevents ImGui:: calls from crashing.
     g.WithinFrameScopeWithImplicitWindow = true;
     SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+    // Make the debug window completely invisible
+    SetNextWindowPos(ImVec2(-10000, -10000), ImGuiCond_Always);
+    SetNextWindowSize(ImVec2(1, 1), ImGuiCond_Always);
+    SetNextWindowBgAlpha(0.0f);
+    SetNextWindowCollapsed(true, ImGuiCond_Always);
     Begin("Debug##Default");
     IM_ASSERT(g.CurrentWindow->IsFallbackWindow == true);
 
