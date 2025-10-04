@@ -47,7 +47,6 @@
             lblTitle = new Label();
             lblInstructions = new Label();
             btnRefreshProcesses = new KestrelClientInjector.components.Button(components);
-            cbShowAllProc = new KestrelClientInjector.components.CheckBox(components);
             cbIgnoreSecurity = new KestrelClientInjector.components.CheckBox(components);
             txtDLLPath = new KestrelClientInjector.components.TextBox(components);
             btnPickDLL = new KestrelClientInjector.components.Button(components);
@@ -192,7 +191,7 @@
             cbIgnoreSecurity.ForeColor = Color.FromArgb(255, 193, 7);
             cbIgnoreSecurity.Location = new Point(13, 443);
             cbIgnoreSecurity.Name = "cbIgnoreSecurity";
-            cbIgnoreSecurity.Size = new Size(200, 22);
+            cbIgnoreSecurity.Size = new Size(166, 22);
             cbIgnoreSecurity.TabIndex = 12;
             cbIgnoreSecurity.Text = "⚠️ Ignore Security Flags";
             cbIgnoreSecurity.UncheckedState.BorderColor = Color.FromArgb(38, 38, 38);
@@ -200,28 +199,6 @@
             cbIgnoreSecurity.UncheckedState.BorderThickness = 0;
             cbIgnoreSecurity.UncheckedState.FillColor = Color.FromArgb(38, 38, 38);
             cbIgnoreSecurity.UseVisualStyleBackColor = false;
-            // 
-            // cbShowAllProc
-            // 
-            cbShowAllProc.Animated = true;
-            cbShowAllProc.AutoSize = true;
-            cbShowAllProc.BackColor = Color.Transparent;
-            cbShowAllProc.CheckedState.BorderColor = Color.FromArgb(231, 80, 34);
-            cbShowAllProc.CheckedState.BorderRadius = 0;
-            cbShowAllProc.CheckedState.BorderThickness = 0;
-            cbShowAllProc.CheckedState.FillColor = Color.FromArgb(231, 80, 34);
-            cbShowAllProc.Font = new Font("Trebuchet MS", 9F, FontStyle.Bold);
-            cbShowAllProc.ForeColor = Color.White;
-            cbShowAllProc.Location = new Point(608, 470);
-            cbShowAllProc.Name = "cbShowAllProc";
-            cbShowAllProc.Size = new Size(177, 22);
-            cbShowAllProc.TabIndex = 7;
-            cbShowAllProc.Text = "Show all unsafe processes!";
-            cbShowAllProc.UncheckedState.BorderColor = Color.FromArgb(38, 38, 38);
-            cbShowAllProc.UncheckedState.BorderRadius = 0;
-            cbShowAllProc.UncheckedState.BorderThickness = 0;
-            cbShowAllProc.UncheckedState.FillColor = Color.FromArgb(38, 38, 38);
-            cbShowAllProc.UseVisualStyleBackColor = false;
             // 
             // txtDLLPath
             // 
@@ -273,6 +250,7 @@
             btnPickDLL.TabIndex = 9;
             btnPickDLL.TabStop = false;
             btnPickDLL.Text = "🔄 Pick DLL";
+            btnPickDLL.Click += btnPickDLL_Click_1;
             // 
             // label1
             // 
@@ -319,7 +297,6 @@
             Controls.Add(btnPickDLL);
             Controls.Add(txtDLLPath);
             Controls.Add(cbIgnoreSecurity);
-            Controls.Add(cbShowAllProc);
             Controls.Add(btnRefreshProcesses);
             Controls.Add(lblInstructions);
             Controls.Add(lblTitle);
@@ -346,7 +323,6 @@
         private Label lblTitle;
         private Label lblInstructions;
         private components.Button btnRefreshProcesses;
-        private components.CheckBox cbShowAllProc;
         private components.CheckBox cbIgnoreSecurity;
         private components.TextBox txtDLLPath;
         private components.Button btnPickDLL;

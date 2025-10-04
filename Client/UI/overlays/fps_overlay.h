@@ -2,6 +2,9 @@
 #include <chrono>
 #include <cstdint>
 
+// Client version
+extern const char* clientVersion;
+
 // FPS tracking variables
 extern bool showFPSOverlay;
 extern float fps;

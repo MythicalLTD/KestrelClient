@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "mythicalclient",
+    "name": "MythicalClient",
+    "description": "The best mod for minecraft ever!",
+    "version": "1.0.0",
+    "mcversion": "1.8.9",
+    "url": "https://github.com/nayskutzu/mythicalclient",
+    "authorList": [
+      "NaysKutzu"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "useDependencyInformation": true,
+    "dependencies": ["unimixins"]
+  }
+]

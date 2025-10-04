@@ -1,0 +1,11 @@
+{
+  "package": "xyz.nayskutzu.mythicalclient.mixin",
+  "refmap": "mixins.mythicalclient.refmap.json",
+  "minVersion": "0.7",
+  "compatibilityLevel": "JAVA_8",
+  "client": [
+    "MixinEntityPlayer",
+    "MixinEntityRenderer",
+    "ChatMixin"
+  ]
+}

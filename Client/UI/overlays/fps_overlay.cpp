@@ -3,6 +3,9 @@
 #include <chrono>
 #include <cstdlib>
 
+// Client version
+const char* clientVersion = "v1.0.0";
+
 // FPS tracking variables
 bool showFPSOverlay = true;
 float fps = 0.0f;

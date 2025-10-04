@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MythicalClient v3.0 - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8B5CF6;
+            --primary-dark: #7C3AED;
+            --secondary: #06B6D4;
+            --accent: #F59E0B;
+            --success: #10B981;
+            --error: #EF4444;
+            --warning: #F59E0B;
+            --background: #0F0F23;
+            --surface: #1A1A2E;
+            --surface-light: #16213E;
+            --border: #2D3748;
+            --text: #F7FAFC;
+            --text-secondary: #A0AEC0;
+            --text-muted: #718096;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #1A1A2E 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 50;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .version {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .license-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 1rem;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .nav-menu {
+            padding: 1.5rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            margin: 0.25rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--primary);
+            transform: scaleY(0);
+            transition: transform 0.2s ease;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--text);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.6) 100%);
+            min-height: 100vh;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 1.125rem;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .module-card {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.1);
+        }
+
+        .module-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .module-button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .module-button:hover {
+            color: var(--primary);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .status-indicator::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .module-button.active .status-indicator {
+            background: var(--success);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+        }
+
+        .module-button.active .status-indicator::after {
+            border-color: var(--success);
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .friends-section {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .friends-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .friends-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .friend-count {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .friend-input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .friend-input {
+            flex: 1;
+            background: rgba(15, 15, 35, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            color: var(--text);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .friend-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(139, 92, 246, 0.2);
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .friend-item:hover {
+            background: rgba(15, 15, 35, 0.8);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .friend-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .friend-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .admin-card {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .admin-card-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-card-description {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .admin-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .session-timer {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            right: 1.5rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .alert {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+        }
+
+        .alert.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 15, 35, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-20px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .modal-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .saved-mods-list {
+            background: rgba(15, 15, 35, 0.6);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .saved-mod-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .saved-mod-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .quick-add-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            border-radius: 12px;
+        }
+
+        .quick-add-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .quick-add-btn {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .quick-add-btn:hover {
+            color: var(--primary-dark);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Restore Modal -->
+    <div id="restoreModal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 class="modal-title">Restore Previous Settings?</h3>
+            <p class="modal-description">We found previously enabled modules from your last session. Would you like to restore them?</p>
+            <div class="saved-mods-list">
+                <div id="savedModsList"></div>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="handleRestoreDecision(false)" class="btn btn-secondary" style="flex: 1;">Start Fresh</button>
+                <button onclick="handleRestoreDecision(true)" class="btn btn-primary" style="flex: 1;">Restore Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">MythicalClient</div>
+                <div class="version">v3.0</div>
+                <div class="license-badge">
+                    <i class="fas fa-shield-check"></i>
+                    Premium License
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#combat" class="nav-item active" onclick="switchPage('combat')">
+                    <i class="nav-icon fas fa-crosshairs"></i>
+                    Combat
+                </a>
+                <a href="#movement" class="nav-item" onclick="switchPage('movement')">
+                    <i class="nav-icon fas fa-running"></i>
+                    Movement
+                </a>
+                <a href="#detectors" class="nav-item" onclick="switchPage('detectors')">
+                    <i class="nav-icon fas fa-radar"></i>
+                    Detectors
+                </a>
+                <a href="#resource" class="nav-item" onclick="switchPage('resource')">
+                    <i class="nav-icon fas fa-cube"></i>
+                    Resource
+                </a>
+                <a href="#friends" class="nav-item" onclick="switchPage('friends')">
+                    <i class="nav-icon fas fa-users"></i>
+                    Friends
+                </a>
+                <a href="#admin" class="nav-item" onclick="switchPage('admin')">
+                    <i class="nav-icon fas fa-shield-alt"></i>
+                    Admin
+                </a>
+            </nav>
+
+            <div class="session-timer">
+                Session: <span id="sessionTime">00:00:00</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Combat Page -->
+            <div id="combat" class="content-section active">
+                <div class="page-header">
+                    <h1 class="page-title">Combat Modules</h1>
+                    <p class="page-subtitle">Enhance your combat capabilities with advanced detection and targeting systems</p>
+                </div>
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <button onclick="toggleMod('PlayerESP')" class="module-button">
+                            <span>Player ESP</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="module-card">
+                        <button onclick="toggleMod('Tracers')" class="module-button">
+                            <span>Tracers</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="module-card">
+                        <button onclick="toggleMod('ChestESP')" class="module-button">
+                            <span>Chest ESP</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="module-card">
+                        <button onclick="toggleMod('BedESP')" class="module-button">
+                            <span>Bed ESP</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movement Page -->
+            <div id="movement" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Movement Modules</h1>
+                    <p class="page-subtitle">Improve your mobility and navigation with enhanced movement features</p>
+                </div>
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <button onclick="toggleMod('BridgeHack')" class="module-button">
+                            <span>SafeWalk</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="module-card">
+                        <button onclick="toggleMod('NoGUI')" class="module-button">
+                            <span>NoGUI</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detectors Page -->
+            <div id="detectors" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Detection Modules</h1>
+                    <p class="page-subtitle">Stay aware of your surroundings with advanced detection systems</p>
+                </div>
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <button onclick="toggleMod('FireballDetector')" class="module-button">
+                            <span>Fireball Detector</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="module-card">
+                        <button onclick="toggleMod('BowDetector')" class="module-button">
+                            <span>Bow Detector</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="module-card">
+                        <button onclick="toggleMod('PlayerHealth')" class="module-button">
+                            <span>Player Health</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="module-card">
+                        <button onclick="toggleMod('TntTimer')" class="module-button">
+                            <span>TNT Timer</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                    <div class="module-card">
+                        <button onclick="toggleMod('Trajectories')" class="module-button">
+                            <span>Trajectories</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resource Page -->
+            <div id="resource" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Resource Modules</h1>
+                    <p class="page-subtitle">Locate and manage resources more efficiently</p>
+                </div>
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <button onclick="toggleMod('ResourceESP')" class="module-button">
+                            <span>Resource ESP</span>
+                            <span class="status-indicator"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Friends Page -->
+            <div id="friends" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Friends Management</h1>
+                    <p class="page-subtitle">Manage your friends list and trusted players</p>
+                </div>
+                <div class="friends-section">
+                    <div class="friend-input-group">
+                        <input type="text" 
+                               id="friendlyPlayer" 
+                               placeholder="Search or add friend..." 
+                               class="friend-input"
+                               onkeypress="if(event.key === 'Enter') addFriendlyPlayer()">
+                        <button onclick="addFriendlyPlayer()" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add Friend
+                        </button>
+                    </div>
+                    
+                    <div class="quick-add-section">
+                        <span class="quick-add-label">Quick Add:</span>
+                        <a href="#" onclick="addMariaAndKutzu()" class="quick-add-btn">
+                            <i class="fas fa-user-plus"></i>
+                            Add Maria and Kutzu
+                        </a>
+                    </div>
+
+                    <div class="friends-header">
+                        <h3 class="friends-title">Your Friends</h3>
+                        <span class="friend-count" id="friendCount">0 friends</span>
+                    </div>
+                    
+                    <div id="friendsListItems">
+                        <!-- Friends will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Page -->
+            <div id="admin" class="content-section">
+                <div class="page-header">
+                    <h1 class="page-title">Admin Controls</h1>
+                    <p class="page-subtitle">Advanced administrative tools and server management</p>
+                </div>
+                <div class="admin-grid">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title">Server Controls</h3>
+                            <p class="admin-card-description">Manage server operations and permissions</p>
+                        </div>
+                        <div class="admin-buttons">
+                            <button onclick="toggleMod('ForceOP')" class="module-button">
+                                <span>Force OP</span>
+                                <span class="status-indicator"></span>
+                            </button>
+                            <button onclick="toggleMod('KillGame')" class="module-button">
+                                <span>Kill Game</span>
+                                <span class="status-indicator"></span>
+                            </button>
+                            <button onclick="toggleMod('BanMe')" class="module-button">
+                                <span>BanMe</span>
+                                <span class="status-indicator"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title">Player Management</h3>
+                            <p class="admin-card-description">Monitor and control player activities</p>
+                        </div>
+                        <div class="admin-buttons">
+                            <button onclick="toggleMod('NearPlayer')" class="module-button">
+                                <span>Player GUI</span>
+                                <span class="status-indicator"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title">Development Tools</h3>
+                            <p class="admin-card-description">Advanced development and debugging tools</p>
+                        </div>
+                        <button onclick="runJavaCode()" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-code"></i>
+                            Execute Java Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <script>
+        // Module states
+        const moduleStates = new Map();
+        const STORAGE_KEY = 'mythicalclient_module_states';
+        
+        // Page switching logic
+        function switchPage(pageId) {
+            document.querySelectorAll('.content-section').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[href="#${pageId}"]`).classList.add('active');
+        }
+
+        // Session timer
+        let sessionSeconds = 0;
+        setInterval(() => {
+            sessionSeconds++;
+            const hours = Math.floor(sessionSeconds / 3600);
+            const minutes = Math.floor((sessionSeconds % 3600) / 60);
+            const seconds = sessionSeconds % 60;
+            document.getElementById('sessionTime').textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }, 1000);
+
+        // Alert system
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.style.background = type === 'success' ? 
+                'linear-gradient(135deg, var(--success), #059669)' : 
+                'linear-gradient(135deg, var(--error), #DC2626)';
+            alert.classList.add('show');
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
+        }
+
+        // Module toggle function
+        function toggleMod(modName) {
+            const btn = document.querySelector(`button[onclick="toggleMod('${modName}')"]`);
+            const currentState = moduleStates.get(modName) || false;
+            
+            axios.post('/toggle', { mod: modName })
+                .then(response => {
+                    const newState = !currentState;
+                    moduleStates.set(modName, newState);
+                    btn.classList.toggle('active', newState);
+                    showAlert(`${modName} has been ${newState ? 'enabled' : 'disabled'}!`, 'success');
+                    saveModuleStates();
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    showAlert(`An error occurred while toggling ${modName}.`, 'error');
+                    console.error(error);
+                });
+        }
+
+        // Save module states to localStorage
+        function saveModuleStates() {
+            const states = {};
+            moduleStates.forEach((value, key) => {
+                if (value) states[key] = value;
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(states));
+        }
+
+        // Load and restore module states
+        function loadModuleStates() {
+            const savedStates = localStorage.getItem(STORAGE_KEY);
+            if (savedStates) {
+                const states = JSON.parse(savedStates);
+                const enabledMods = Object.keys(states);
+                
+                if (enabledMods.length > 0) {
+                    const modulesList = document.getElementById('savedModsList');
+                    modulesList.innerHTML = enabledMods
+                        .map(mod => `<div class="saved-mod-item">
+                            <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                            ${mod}
+                        </div>`)
+                        .join('');
+                    
+                    document.getElementById('restoreModal').classList.add('show');
+                }
+            }
+        }
+
+        // Handle restore decision
+        function handleRestoreDecision(restore) {
+            const modal = document.getElementById('restoreModal');
+            modal.classList.remove('show');
+            if (restore) {
+                const savedStates = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                Object.keys(savedStates).forEach(modName => {
+                    if (savedStates[modName]) {
+                        toggleMod(modName);
+                    }
+                });
+                showAlert('Previous settings restored successfully!', 'success');
+            } else {
+                localStorage.removeItem(STORAGE_KEY);
+                showAlert('Starting with fresh settings', 'success');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadModuleStates();
+            updateFriendsList();
+        });
+
+        // Java code execution
+        function runJavaCode() {
+            const code = prompt('Enter Java Code:');
+            if (code) {
+                axios.post('/run', { code: code })
+                    .then(response => {
+                        showAlert('Code executed successfully!', 'success');
+                    })
+                    .catch(error => {
+                        showAlert('Failed to execute code.', 'error');
+                        console.error(error);
+                    });
+            }
+        }
+
+        // Friends management
+        let friendlyPlayers = new Set();
+
+        function addFriendlyPlayer() {
+            const playerName = document.getElementById('friendlyPlayer').value.trim();
+            if (!playerName) return;
+            
+            axios.post('/addfriend', { playerName: playerName })
+                .then(response => {
+                    friendlyPlayers.add(playerName);
+                    updateFriendsList();
+                    showAlert(`${playerName} added to friends!`, 'success');
+                    document.getElementById('friendlyPlayer').value = '';
+                })
+                .catch(error => {
+                    showAlert('Failed to add friend.', 'error');
+                    console.error(error);
+                });
+        }
+
+        function removeFriendlyPlayer(playerName) {
+            axios.post('/removefriend', { playerName: playerName })
+                .then(response => {
+                    friendlyPlayers.delete(playerName);
+                    updateFriendsList();
+                    showAlert(`${playerName} removed from friends.`, 'success');
+                })
+                .catch(error => {
+                    showAlert('Failed to remove friend.', 'error');
+                    console.error(error);
+                });
+        }
+
+        function addMariaAndKutzu() {
+            const input = document.getElementById('friendlyPlayer');
+            input.value = 'Maria_Int';
+            addFriendlyPlayer();
+            setTimeout(() => {
+                input.value = 'NaysKutzu';
+                addFriendlyPlayer();
+            }, 500);
+        }
+
+        function updateFriendsList() {
+            const listElement = document.getElementById('friendsListItems');
+            const countElement = document.getElementById('friendCount');
+            
+            countElement.textContent = `${friendlyPlayers.size} friend${friendlyPlayers.size !== 1 ? 's' : ''}`;
+            
+            if (friendlyPlayers.size === 0) {
+                listElement.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic;">
+                        No friends added yet
+                    </div>
+                `;
+                return;
+            }
+
+            listElement.innerHTML = Array.from(friendlyPlayers)
+                .map(player => `
+                    <div class="friend-item">
+                        <div class="friend-info">
+                            <div class="friend-status"></div>
+                            <span style="font-weight: 600;">${player}</span>
+                        </div>
+                        <button onclick="removeFriendlyPlayer('${player}')" 
+                                style="background: none; border: none; color: var(--error); cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: background 0.2s ease;"
+                                onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'"
+                                onmouseout="this.style.background='none'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `).join('');
+        }
+
+        // Load friends on page load
+        axios.get('/getfriends')
+            .then(response => {
+                friendlyPlayers = new Set(response.data);
+                updateFriendsList();
+            })
+            .catch(error => {
+                console.error('Error loading friends:', error);
+                showAlert('Failed to load friends list.', 'error');
+            });
+
+        // Clear friend input on Escape
+        document.getElementById('friendlyPlayer').addEventListener('keyup', function(event) {
+            if (event.key === 'Escape') {
+                this.value = '';
+            }
+        });
+
+        // Search functionality
+        let searchTimeout;
+        document.getElementById('friendlyPlayer').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterFriends(e.target.value);
+            }, 300);
+        });
+
+        function filterFriends(searchTerm) {
+            const players = Array.from(friendlyPlayers);
+            const filtered = searchTerm ? 
+                players.filter(player => player.toLowerCase().includes(searchTerm.toLowerCase())) :
+                players;
+            updateFriendsListUI(filtered);
+        }
+
+        function updateFriendsListUI(players) {
+            const listElement = document.getElementById('friendsListItems');
+            
+            if (players.length === 0) {
+                listElement.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic;">
+                        ${friendlyPlayers.size === 0 ? 'No friends added yet' : 'No matching friends found'}
+                    </div>
+                `;
+                return;
+            }
+
+            listElement.innerHTML = players
+                .map(player => `
+                    <div class="friend-item">
+                        <div class="friend-info">
+                            <div class="friend-status"></div>
+                            <span style="font-weight: 600;">${player}</span>
+                        </div>
+                        <button onclick="removeFriendlyPlayer('${player}')" 
+                                style="background: none; border: none; color: var(--error); cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: background 0.2s ease;"
+                                onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'"
+                                onmouseout="this.style.background='none'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `).join('');
+        }
+    </script>
+</body>
+</html>

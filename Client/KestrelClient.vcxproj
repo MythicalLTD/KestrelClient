@@ -119,7 +119,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opengl32.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;Ws2_32.lib;ole32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,7 +138,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>opengl32.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;Ws2_32.lib;ole32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -176,6 +176,7 @@
     <ClInclude Include="minhook\src\hde\table32.h" />
     <ClInclude Include="minhook\src\hde\table64.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="logger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -211,6 +212,7 @@
     <ClCompile Include="src\imgui_impl_win32.cpp" />
     <ClCompile Include="src\imgui_tables.cpp" />
     <ClCompile Include="src\imgui_widgets.cpp" />
+    <ClCompile Include="logger.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -31,7 +31,40 @@ namespace KestrelClientInjector
                     Logger.Info("Another instance is already running and multiple instances are disabled.");
                     return;
                 }
-                Application.Run(new FrmMain());
+                bool eulaAccepted = RegistryConfig.GetValue("eula_accepted", false);
+                if (!eulaAccepted)
+                {
+                    string agreement = "Software Agreement\n\n" +
+                        "By downloading, installing, or using this software (the Client), you agree to the following:\n\n" +
+                        "No Responsibility for Bans\n" +
+                        "The creators and owners of this Client are not responsible if you are banned, suspended, or penalized in any way from any service, platform, or server while using this software.\n\n" +
+                        "No Responsibility for System Issues\n" +
+                        "The Client is provided \"as is,\" without any guarantees. We are not responsible for any issues, damages, or malfunctions to your computer, operating system, files, or data that may occur while or after using the software.\n\n" +
+                        "Use at Your Own Risk\n" +
+                        "You accept that you use this Client entirely at your own risk.\n\n" +
+                        "No Liability\n" +
+                        "The owner(s) of this product hold no liability for any direct, indirect, incidental, or consequential damages resulting from the use of the Client.\n\n" +
+                        "Do you accept and agree to these terms?";
+
+                    DialogResult result = MessageBox.Show(
+                        agreement,
+                        "Software Agreement",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning,
+                        MessageBoxDefaultButton.Button2
+                    );
+
+                    if (result == DialogResult.Yes)
+                    {
+                        RegistryConfig.SetValue("eula_accepted", true);
+                    }
+                    else
+                    {
+                        Application.Exit();
+                        return;
+                    }
+                }
+                Application.Run(new FrmNew());
 
             }
             catch (Exception ex)

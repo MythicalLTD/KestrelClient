@@ -1,14 +1,4 @@
 ﻿using KestrelClientInjector.utils;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.IO;
 
 namespace KestrelClientInjector.forms
 {
@@ -38,8 +28,6 @@ namespace KestrelClientInjector.forms
             txtDLLPath.PlaceholderText = "Select DLL file to inject...";
             txtDLLPath.ReadOnly = true;
 
-            cbShowAllProc.CheckedChanged += cbShowAllProc_CheckedChanged;
-            cbShowAllProc.Checked = false;
 
             cbIgnoreSecurity.CheckedChanged += cbIgnoreSecurity_CheckedChanged;
             cbIgnoreSecurity.Checked = false;
@@ -102,14 +90,14 @@ namespace KestrelClientInjector.forms
                 allProcesses.Clear();
                 UpdateInjectButtonState();
 
-                bool showMinecraftOnly = !cbShowAllProc.Checked;
-                allProcesses = ProcessFilter.GetSafeProcesses(showMinecraftOnly);
+                // Load all processes (not just Minecraft)
+                allProcesses = ProcessFilter.GetSafeProcesses(false);
 
                 RefreshProcessList();
 
-                string filterText = showMinecraftOnly ? "Minecraft processes" : "all safe processes";
-                lblInstructions.Text = $"⛏️ Loaded {allProcesses.Count} {filterText}. Critical Windows processes are filtered out.";
+                lblInstructions.Text = $"⛏️ Loaded {allProcesses.Count} processes. Critical Windows processes are filtered out.";
                 lblInstructions.ForeColor = Color.FromArgb(175, 175, 175);
+                UpdateInjectButtonState();
             }
             catch (Exception ex)
             {
@@ -149,14 +137,13 @@ namespace KestrelClientInjector.forms
                 }
             }
 
-            string filterText = cbShowAllProc.Checked ? "processes" : "Minecraft processes";
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                lblInstructions.Text = $"⛏️ Showing {filteredProcesses.Count} {filterText}";
+                lblInstructions.Text = $"⛏️ Showing {filteredProcesses.Count} processes";
             }
             else
             {
-                lblInstructions.Text = $"🔍 Found {filteredProcesses.Count} {filterText} matching '{searchText}'";
+                lblInstructions.Text = $"🔍 Found {filteredProcesses.Count} processes matching '{searchText}'";
             }
             lblInstructions.ForeColor = Color.FromArgb(175, 175, 175);
         }
@@ -166,11 +153,6 @@ namespace KestrelClientInjector.forms
             RefreshProcessList();
         }
 
-        private void cbShowAllProc_CheckedChanged(object? sender, EventArgs e)
-        {
-            LoadProcesses();
-            txtSearch.Text = "";
-        }
 
         private void cbIgnoreSecurity_CheckedChanged(object? sender, EventArgs e)
         {
@@ -237,7 +219,7 @@ namespace KestrelClientInjector.forms
                     txtDLLPath.Text = selectedDllPath;
                     label1.Text = $"DLL Selected: {Path.GetFileName(selectedDllPath)}";
                     lblInstructions.Text = $"✅ DLL Selected: {Path.GetFileName(selectedDllPath)}";
-                    RegistryConfig.SetValue("last_dll_path", selectedDllPath); 
+                    RegistryConfig.SetValue("last_dll_path", selectedDllPath);
                     UpdateInjectButtonState();
                 }
             }
@@ -245,15 +227,13 @@ namespace KestrelClientInjector.forms
 
         private void UpdateInjectButtonState()
         {
-            bool canInject = SelectedProcess != null &&
-                             !string.IsNullOrEmpty(selectedDllPath) &&
-                             (!injectedProcessIds.Contains(SelectedProcess?.ProcessId ?? 0) || cbIgnoreSecurity.Checked);
+            bool canInject = SelectedProcess != null && !string.IsNullOrEmpty(selectedDllPath);
 
             btnNext.Enabled = canInject;
 
-            if (SelectedProcess != null && injectedProcessIds.Contains(SelectedProcess.ProcessId) && !cbIgnoreSecurity.Checked)
+            if (SelectedProcess != null && injectedProcessIds.Contains(SelectedProcess.ProcessId))
             {
-                btnNext.Text = "🚫 ALREADY INJECTED";
+                btnNext.Text = "💉 INJECT AGAIN";
             }
             else
             {
@@ -405,6 +385,11 @@ namespace KestrelClientInjector.forms
             {
                 pbProgress.Value = 0;
             }
+        }
+
+        private void btnPickDLL_Click_1(object sender, EventArgs e)
+        {
+
         }
     }
 }
